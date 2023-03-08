@@ -19,22 +19,21 @@ def Chebyshev(fhandle,points,m,n):
 #             points:                The vector of points, for which the function is approximated
 ##################################################################################
 
-
     assert (m>=n+1), 'The specified parameters are not acceptable. Make sure m>n'
 
     a = points[0]
     b = points[-1]
     number = points.size
-    f_approx = np.nan + np.zeros((number))  # Initial vector to store the approximated function values
-    f_actual = np.nan + np.zeros((number))  # Initial vector to store the actual function values
+    f_approx = np.nan + np.zeros((number))      # Initial vector to store the approximated function values
+    f_actual = np.nan + np.zeros((number))      # Initial vector to store the actual function values
 
-    for x in range(number):                   # Loop over the x values
-        ai = np.nan +np.zeros((n+1))         # Initial vector to store the Chebyshev coefficients
-        f_hat = 0                             # Initial value of the approximating function
-        for i in range(n+1):                  # Loop over the degree of the approximation polynomial. 
-            nom = 0                           # Initial value for step 4
-            denom = 0                         # Initial value for step 4
-            for k in range(m):                # Loop over the approximation notes
+    for x in range(number):                     # Loop over the x values
+        ai = np.nan +np.zeros((n+1))            # Initial vector to store the Chebyshev coefficients
+        f_hat = 0                               # Initial value of the approximating function
+        for i in range(n+1):                    # Loop over the degree of the approximation polynomial. 
+            nom = 0                             # Initial value for step 4
+            denom = 0                           # Initial value for step 4
+            for k in range(m):                  # Loop over the approximation notes
                 
                 # Step1: Compute the m Chebyshev interpolation notes in [-1,1]    
                 zk = -np.cos(((2*(k+1)-1)/(2*m))*np.pi)
@@ -52,7 +51,7 @@ def Chebyshev(fhandle,points,m,n):
                     ai[i] = nom/denom
             
             f_hat = f_hat+ai[i]*Tn(2*(points[x]-a)/(b-a)-1,i)  # The Chebyshev approximation of f(x)
-            f_temp = fhandle(points[x])                       # Actual function value, f(x)
+            f_temp = fhandle(points[x])                        # Actual function value, f(x)
 
         f_approx[x] = f_hat
         f_actual[x] = f_temp

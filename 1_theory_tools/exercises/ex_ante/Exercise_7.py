@@ -34,6 +34,7 @@ def setup():
 def util(c,par):
     return (c**(1.0-par.rho))/(1.0-par.rho)
 
+
 def solve_deaton_infty(par):
      # initialize solution class
     class sol: pass
