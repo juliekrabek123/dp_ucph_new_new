@@ -24,20 +24,20 @@ class zurcher():
 
         # b. update baseline parameters using keywords
         for key,val in kwargs.items():
-            setattr(self,key,val) 
+            setattr(self,key,val)         # The setattr() function sets the value of the attribute of an object.
 
         # c. Create grid
-        self.create_grid()
+        self.create_grid()                # Uses the following function 
 
     def create_grid(self):
-        self.grid = np.arange(0,self.n) # milage grid
-        self.cost = 0.001*self.c*self.grid  # cost function
-        self.state_transition() 
+        self.grid = np.arange(0,self.n)     # Milage grid
+        self.cost = 0.001*self.c*self.grid  # Cost function
+        self.state_transition()             # Uses the following function 
 
     def state_transition(self):
         '''Compute transition probability matrixes conditional on choice'''
-        p = np.append(self.p,1-np.sum(self.p)) # Get transition probabilities
-        P1 = np.zeros((self.n,self.n)) # Initialize transition matrix
+        p = np.append(self.p,1-np.sum(self.p))  # Get transition probabilities
+        P1 = np.zeros((self.n,self.n))          # Initialize transition matrix
         # Loop over rows
         for i in range(self.n):
             # Check if p vector fits entirely
