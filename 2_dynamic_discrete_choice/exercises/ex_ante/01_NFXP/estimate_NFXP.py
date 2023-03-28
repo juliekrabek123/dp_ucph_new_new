@@ -58,8 +58,13 @@ def ll(theta, model, solver,data, pnames, out=1, no_guess = False): # out=1 solv
     d = np.array(data.d) # d is the observed decision
     dx1 = np.array(data.dx1) # dx1 is observed change in x 
 
+<<<<<<< HEAD
     if no_guess == True:
         ev = np.zeros((model.n)) # Use previous value function as starting value
+=======
+    if no_guess == True: #Set ev to zero instead of using global variable
+        ev = np.zeros((model.n))
+>>>>>>> 1e04ef6c0eb00994140ce3d61d6e2eeec4aaad91
     
     # Update values
     model=updatepar(model,pnames,theta)
