@@ -34,24 +34,21 @@ def sparsity_pattern(Nc,N, M):
 def estimate(model, data, theta0 = [0,0],twostep=0):
     assert(twostep == 1),'MPEC only implemented for twostep=1'
 
-
     # Setup
     pnames = ['RC','c'] # Define parameter names
 
     # Step 1: Preprocess data
     class data_class: pass
-    data_class.x = data.x - 1 # states in data
-    data_class.dk = (data.d == 0) # Dummy for keep 
-    data_class.dr = (data.d == 1) # Dummy for replace
+    data_class.x = data.x - 1       # states in data
+    data_class.dk = (data.d == 0)   # Dummy for keep 
+    data_class.dr = (data.d == 1)   # Dummy for replace
 
     ## We create a dummy for being in a given state in the data
     data_class.xd = np.nan+np.zeros((model.n,data.x.size,)) # Initalize
-    for i in range(model.n): # Loop over states
-        data_class.xd[i,:] = (data.x == i+1) # Create dummy for being in state i+1 (data starts at 1)
-    data_class.xd = data_class.xd.astype(int) # Convert to integer
+    for i in range(model.n):                                # Loop over states (n = 175)
+        data_class.xd[i,:] = (data.x == i+1)                # Create dummy for being in state i+1 (data starts at 1)
+    data_class.xd = data_class.xd.astype(int)               # Convert to integer
     
-
-
     data = data_class # save data
 
     # Step 2: Estimate structual parameters 
@@ -69,14 +66,14 @@ def estimate(model, data, theta0 = [0,0],twostep=0):
     lb[1] = 0
     ub[1] = np.inf
   
-
     # bounds on EV
     lb[-(model.n):] = -5000
     ub[-(model.n):] = 0
 
     # Define constraints and jacobian of constraint
-    con_bell = lambda theta: con_bellman(theta,model,data, pnames) # Define constratint
+    con_bell = lambda theta: con_bellman(theta,model,data, pnames)   # Define constratint
     con_Jac = lambda theta: constraint_jac(theta,model,data, pnames)
+    
     # Give sparsity pattern to constraint and set lower and upper bound to zero
     con_p_bellman = optimize.NonlinearConstraint(con_bell,0,0, jac = con_Jac, finite_diff_jac_sparsity = J_pattern) 
 
@@ -98,36 +95,28 @@ def ll(theta,model,data,pnames,out=1):
     dr = data.dr
     
     # Update values
+    ## theta er vores gæt, og hvis vi havde NFXP, så har vi ikke 'ev' elementet 
     model.RC = theta[0]
     model.c = theta[1] 
-    ev = theta[2:]
-    # Create grid
+    ev = theta[-model.n:] 
     model.create_grid()
 
-    ## FILL IN BELOW
-
     # Value of options:
+    ## til forskel fra NFXP, så ganges ev direkte på beta, så dermed har vi 'integrated' 
+    value_keep = -model.cost + model.beta*ev
+    value_replace = -model.RC - model.cost[0] + model.beta*ev[0] 
+    ## Choice probabiltiy of keep for all states
+    pk = 1/(1+np.exp(value_replace-value_keep))  
 
-    #Hint: We are now solving in expected value function space. This means that unlike in exercise_1, 
-    # you should not multiply ev with the transition matrix.
-    #v_keep = # Value of keep
-    #v_replace = # Value of replace
-    
-    # Choice probabiltiy of keep for all states
-    #pk = 
+    # Evaluate the likelihood function 
+    ## Choice probability of keep given observed state in data
+    lik_pr = pk[x] 
 
-    # Choice probability of keep given observed state in data
-    lik_pr =  pk[data.x] 
-    
     if out == 2:
         return model, lik_pr
-
-    # Evaluate log-likelihood
-    # log_lik = 
-
-    # Objective function is negative mean log-likelihood
+        
+    log_lik = np.log(dk*lik_pr+(1-lik_pr)*dr)
     f = -np.mean(log_lik)
-
 
     # GRADIENT: Is written as - (dummy for choice - choice-probability in data) * (value_replace - value_keep)    
     res =  - np.array(dk - lik_pr) # dummy for choice - choice-probability in data
@@ -145,9 +134,7 @@ def con_bellman(theta, model, data, pnames, out=1):
     # Update parameters
     ev0 = theta[-model.n:]
 
-    # FILL IN BELOW
-    ev1, pk, dev = bellman(model,ev0, output=3)
-
+    ev1, pk, dev = bellman(model, ev0=ev0,output=3)
     if out ==2:
         return pk, dev
 
@@ -155,18 +142,19 @@ def con_bellman(theta, model, data, pnames, out=1):
 
 def constraint_jac(theta, model, data, pnames):
     
-    pk,dev = con_bellman(theta, model, data, pnames, out=2) # Get pk and dev
-    DCeq = np.zeros((model.n,2+model.n)) # Initialize Jacobian
-    DCeq[:,0] = - model.P1 @(1-pk)  # Jacobian of RC
-    DCeq[:,1] = -model.P1@(pk*(model.dc-model.dc[0])) # Jacobian of c
-    DCeq[:,-model.n:] = dev-np.identity(model.n) # Jacobian of EV
+    pk,dev = con_bellman(theta, model, data, pnames, out=2)  # Get pk and dev (dev: afledte expected value)
+    DCeq = np.zeros((model.n,2+model.n))                     # Initialize Jacobian
+    DCeq[:,0] = - model.P1 @(1-pk)                           # Jacobian of RC
+    DCeq[:,1] = -model.P1@(pk*(model.dc-model.dc[0]))        # Jacobian of c
+    DCeq[:,-model.n:] = dev-np.identity(model.n)             # Jacobian of EV
 
     return DCeq
 
 
 def bellman(model,ev0=np.zeros(1),output=1):
     """" 
-    Bellman operator in expected value - operator in model_zucher is in integrated value"""
+    Bellman operator in expected value - operator in model_zucher is in integrated value
+    """
 
     # Value of options:
     value_keep = -model.cost + model.beta*ev0
