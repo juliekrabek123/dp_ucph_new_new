@@ -85,11 +85,11 @@ class zurcher():
         eulerc = np.euler_gamma
         
         # Compute Vsigma
-        #Fill in
-        #Hint:  Use the small psi function from slides
-        #       Make sure to get E[\epsilon(a)|a,x] correct
+        value_keep = -self.cost + eulerc-np.log(pk)
+        value_replace = -self.RC - self.cost[0] + eulerc - np.log(1-pk) 
+        pv = value_keep*pk + value_replace*(1-pk)
 
-        #self.Vsigma = 
+        self.Vsigma = np.ravel(self.Finv@pv) 
 
     def lambdaa(self):
         '''Evaluate lambda function (mapping from Vsigma to updated CCP)'''
