@@ -22,9 +22,9 @@ class model_bufferstock():
         par = self.par
 
         # Demograhpics
-        par.T = 200 # Terminal age
-        par.Tr = 200 # Retirement age, no retirement if TR=T
-        par.age_min = 25 # Only relevant for figures
+        par.T = 200         # Terminal age
+        par.Tr = 200        # Retirement age, no retirement if TR=T
+        par.age_min = 25    # Only relevant for figures
 
         # Preferences
         par.rho = 2
@@ -36,7 +36,7 @@ class model_bufferstock():
 
         # Income shocks
         ## Log normal shocks
-        par.sigma_xi = 0.1 # Transitory shock
+        par.sigma_xi = 0.1  # Transitory shock
         par.sigma_psi = 0.1 # Permanent shock
         ## Discrete shocks
         par.low_p = 0.005 # Probability of very low shock (Called pi in slides)
@@ -90,7 +90,7 @@ class model_bufferstock():
         ## Nodes and weights for quadrature
         ### Define epsilon
         eps,eps_w = tools.GaussHermite_lognorm(par.sigma_xi,par.Neps)
-        ###Define psi
+        ### Define psi
         par.psi,par.psi_w = tools.GaussHermite_lognorm(par.sigma_psi,par.Npsi)
 
         # Define xi
@@ -98,7 +98,7 @@ class model_bufferstock():
         if par.low_p > 0:
             par.xi =  np.append(par.low_val+1e-8, (eps-par.low_p*par.low_val)/(1-par.low_p), axis=None) # +1e-8 makes it possible to take the log in simulation if low_val = 0
             par.xi_w = np.append(par.low_p, (1-par.low_p)*eps_w, axis=None)
-        else: #If no discrete shock then xi=eps
+        else: # If no discrete shock then xi=eps
             par.xi = eps
             par.xi_w = eps_w
 
@@ -115,9 +115,9 @@ class model_bufferstock():
         par.Nshocks = par.w.size    # count number of shock nodes
         
         #3. Minimum a
-        if par.lambdaa == 0: #No borrowing
+        if par.lambdaa == 0: # No borrowing
             par.a_min = np.zeros([par.T,1])
-        else: #Borrowing allowed
+        else: # Borrowing allowed
             # Allocate space
             par.a_min = np.nan + np.zeros([par.T,1])
             
@@ -137,7 +137,7 @@ class model_bufferstock():
                 par.a_min[t]= -min(Omega,par.lambdaa)
         
         
-        #4. End of period assets (a grid)
+        # 4. End of period assets (a grid)
         par.grid_a = np.nan + np.zeros([par.T,par.Na])
         for t in range(par.T):
             par.grid_a[t,:] = tools.nonlinspace(par.a_min[t]+1e-8,par.a_max,par.Na,par.a_phi)
